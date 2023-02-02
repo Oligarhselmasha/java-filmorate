@@ -1,23 +1,23 @@
 package ru.yandex.practicum.filmorate.storages;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
+@RequiredArgsConstructor
 public class InMemoryFilmStorage implements FilmStorage {
 
     private int filmId;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final Map<Integer, Film> films;
 
     @Override
-    public Film addFilm(Film film) throws ValidationException {
+    public Film addFilm(Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Данные в запросе на добавление нового фильма не соответствуют критериям.");
         }
@@ -28,7 +28,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) throws MissingException {
+    public Film updateFilm(Film film) {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
             return film;
@@ -38,7 +38,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film deliteFilmById(int id) throws ValidationException {
+    public Film deliteFilmById(int id) {
         if (films.containsKey(id)) {
             return films.remove(id);
         } else {
@@ -47,8 +47,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> getFilms() {
-        return films.values();
+    public List<Film> getFilms() {
+        return new ArrayList<>(films.values());
     }
 
     @Override

@@ -1,9 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.exceptions.MissingException;
-import ru.yandex.practicum.filmorate.storages.UserStorage;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -14,13 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
+@Builder
 public class Film {
 
-    @Autowired
-    UserStorage userStorage;
-
     private int id;
-
     @NotBlank
     @NotNull
     private String name;
@@ -29,13 +25,17 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
-    private Set<Integer> likes = new HashSet<>();
+    private final Set<Integer> likes = new HashSet<>();
 
-    public void setLikes(int userId) {
+    public void setLike(int userId) {
         likes.add(userId);
     }
 
-    public void deleteLikes(int userId) throws MissingException {
+    public Integer getCountLikes(){
+        return likes.size();
+    }
+
+    public void deleteLikes(int userId) {
         if (likes.contains(userId)) {
             likes.remove(userId);
         } else {

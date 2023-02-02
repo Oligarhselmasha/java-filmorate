@@ -1,27 +1,23 @@
 package ru.yandex.practicum.filmorate.storages;
 
+import lombok.Data;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
+@Data
 @Component
 public class InMemoryUserStorage implements UserStorage {
 
     private int userId;
-    private final Map<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users;
 
     @Override
-    public User addUsers(User user) throws ValidationException {
-        if (user.getLogin().contains(" ") || user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Данные в запросе на добавление нового пользователя не соответствуют " +
-                    "критериям.");
-        }
+    public User addUsers(User user) {
         if (user.getName() == null || user.getName().equals("")) {
             user.setName(user.getLogin());
         }
@@ -32,7 +28,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) throws MissingException {
+    public User updateUser(User user) {
         if (users.containsKey(user.getId())) {
             users.put(user.getId(), user);
             if (user.getName() == null) {
@@ -45,7 +41,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User deliteUserById(int userId) throws ValidationException {
+    public User deliteUserById(int userId) {
         if (users.containsKey(userId)) {
             return users.remove(userId);
         } else {
@@ -54,7 +50,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUserById(int userId) throws MissingException {
+    public User getUserById(int userId) {
         if (users.containsKey(userId)) {
             return users.get(userId);
         } else {
