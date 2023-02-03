@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -12,7 +11,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@RequiredArgsConstructor
 @Service
 public class UserService {
 

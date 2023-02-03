@@ -55,19 +55,4 @@ public class FilmController {
             @RequestParam(defaultValue = "10", required = false) Integer count) {
         return filmService.receiveMostPopular(count);
     }
-
-    public static void validate(Film film) {
-        if (film.getName() == null || film.getName().isEmpty()) {
-            throw new ValidationException("Имя не соответствует заданным критериям");
-        }
-        if (film.getDescription().length() > 200) {
-            throw new ValidationException("Описание не соответствует заданным критериям");
-        }
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Продолжительность не соответствует заданным критериям");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Дата релиза не соответствует заданным критериям");
-        }
-    }
 }

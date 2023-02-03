@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.Random;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -112,12 +113,14 @@ class FilmorateApplicationTest {
     @SneakyThrows
     @Test
     void testPostFilmInvalidDescription() {
+        Random random = new Random();
+        String badDescricpion = random
+                .ints(48, 123)
+                .limit(201)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
         Film newFilm = Film.builder()
                 .name("Крестный Отец")
-                .description("Фильм про мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию" +
-                        ", мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию" +
-                        ", мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию" +
-                        ", мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию, мафию")
+                .description(badDescricpion)
                 .duration(180)
                 .releaseDate(LocalDate.of(1985, 11, 11)).build();
         String newFilmString = objectMapper.writeValueAsString(newFilm);

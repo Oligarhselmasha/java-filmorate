@@ -64,16 +64,4 @@ public class UserController {
     public Collection<User> takeCommonFriendsList(@PathVariable("id") Integer id, @PathVariable("otherId") Integer otherId) throws ValidationException, MissingException {
         return userService.takeCommonFriendsList(id, otherId);
     }
-
-    public static void validate(User user) throws ValidationException {
-        if (!user.getEmail().contains("@")) {
-            throw new ValidationException("Email не соответствует заданным критериям");
-        }
-        if (user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            throw new ValidationException("Логин не соответствует заданным критериям");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("Дата рождения не должна быть в будущем");
-        }
-    }
 }
