@@ -1,76 +1,67 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-
+import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
 
-    private int userId;
-    private final Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
 
     @GetMapping
-    public Collection<User> getCustomers() {
-        return users.values();
+    public Collection<User> getCustomers() { // Получение всех юзеров
+        return userService.getCustomers();
+    }
+
+    @GetMapping("/{id}")
+    public User getCustomersDyId(@PathVariable("id") Integer id) throws MissingException { // Получение юзера по id
+        return userService.getCustomersDyId(id);
     }
 
     @PostMapping()
     public User addUsers(@Valid @RequestBody User user) throws ValidationException {
-        if (user.getLogin().contains(" ") || user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Данные в запросе на добавление нового пользователя не соответствуют " +
-                    "критериям.");
-            throw new ValidationException("Данные в запросе на добавление нового пользователя не соответствуют " +
-                    "критериям.");
-        }
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-        userId++;
-        user.setId(userId);
-        users.put(userId, user);
-        log.info("Пользователь {} успешно добавлен!", user.getLogin());
-        return user;
+        return userService.addUsers(user);
     }
 
     @PutMapping()
-    public User updateUser(@Valid @RequestBody User user) throws ValidationException {
-        if (users.containsKey(user.getId())) {
-            users.put(user.getId(), user);
-            log.info("Пользователь {} успешно обновлен!", user.getLogin());
-            return user;
-        } else {
-            log.warn("Пользователь {}, которого Вы пытаетесь обновить, в базе не обнаружен", user);
-            throw new ValidationException("Пользователь в базе не обнаружен");
-        }
+    public User updateUser(@Valid @RequestBody User user) throws ValidationException, MissingException {
+        return userService.updateUser(user);
     }
 
-    public static void validate(User user) throws ValidationException {
-        if(!user.getEmail().contains("@")){
-            throw new ValidationException("Email не соответствует заданным критериям");
-        }
-        if(user.getLogin() == null || user.getLogin().isEmpty() || user.getLogin().contains(" ")){
-            throw new ValidationException("Логин не соответствует заданным критериям");
-        }
-        if(user.getBirthday().isAfter(LocalDate.now())){
-            throw new ValidationException("Дата рождения не должна быть в будущем");
-        }
+    @PutMapping("/{id}")
+    public User deliteUserById(@PathVariable("id") Integer id) throws ValidationException {
+        return userService.deliteUserById(id);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public User addToFriends(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) throws MissingException {
+        return userService.addToFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public User deleteFromFriends(@PathVariable("id") Integer id, @PathVariable("friendId") Integer friendId) throws ValidationException, MissingException {
+        return userService.deliteFromFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> takeFriendsList(@PathVariable("id") Integer id) throws MissingException {
+        return userService.takeFriendsList(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> takeCommonFriendsList(@PathVariable("id") Integer id, @PathVariable("otherId") Integer otherId) throws ValidationException, MissingException {
+        return userService.takeCommonFriendsList(id, otherId);
     }
 }
