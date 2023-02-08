@@ -24,18 +24,32 @@ public class User {
     private String name;
     @PastOrPresent
     private LocalDate birthday;
-    private final Set<Integer> friends = new HashSet<>();
+    private final Set<Integer> notAprovedFriends = new HashSet<>();
+    private final Set<Integer> aprovedFriends = new HashSet<>();
+
 
 
     public Set<Integer> getFriends() {
-        return friends;
+        return notAprovedFriends;
     }
 
     public void deleteFriends(int userId) {
-        friends.remove(userId);
+        notAprovedFriends.remove(userId);
     }
 
-    public void setFriendsById(Integer userId) {
-        friends.add(userId);
+    public void setNotAprovedFriendsById(Integer userId) {
+        notAprovedFriends.add(userId);
+    }
+
+    public void setAprovedFriendsById(Integer userId) {
+        notAprovedFriends.remove(userId);
+        aprovedFriends.add(userId);
+    }
+
+    public String isAprovedFriend(Integer userId){
+        if (aprovedFriends.contains(userId)){
+            return "Aproved";
+        }
+        else return "Not aproved";
     }
 }

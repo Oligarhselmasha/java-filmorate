@@ -60,7 +60,7 @@ class FilmorateApplicationTest {
                 .login("")
                 .name("Kirill")
                 .email("kirill-bulanov@narod.ru")
-                .birthday(LocalDate.of(1991, 03,22))
+                .birthday(LocalDate.of(1991, 3,22))
                 .build();
         String newUserString = objectMapper.writeValueAsString(newUser);
         mockMvc.perform(post("/users").contentType("application/json").content(newUserString))

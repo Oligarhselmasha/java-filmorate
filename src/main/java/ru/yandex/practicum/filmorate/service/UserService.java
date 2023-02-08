@@ -41,10 +41,19 @@ public class UserService {
         if (!userStorage.getUsersIds().contains(userId) || !userStorage.getUsersIds().contains(friendId)) {
             throw new MissingException("Введен несуществующий id");
         }
+        User user = userStorage.getUserById(userId);
+        user.setNotAprovedFriendsById(friendId);
+        return user;
+    }
+
+    public User aproveFriendship(int userId, int friendId) {
+        if (!userStorage.getUsersIds().contains(userId) || !userStorage.getUsersIds().contains(friendId)) {
+            throw new MissingException("Введен несуществующий id");
+        }
         User user1 = userStorage.getUserById(userId);
-        user1.setFriendsById(friendId);
         User user2 = userStorage.getUserById(friendId);
-        user2.setFriendsById(userId);
+        user2.setAprovedFriendsById(userId);
+        user1.setAprovedFriendsById(friendId);
         return user1;
     }
 
