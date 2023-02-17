@@ -8,8 +8,14 @@ import java.util.List;
 @Component
 public interface FilmStorage {
     Film addFilm(Film film);
+
     Film updateFilm(Film film);
+
     Film deliteFilmById(int id);
+
     List<Film> getFilms();
+
     Film getFilmById(int id);
+
+    Film addLikeToFilm(int userId, int usersFriendId);
 }

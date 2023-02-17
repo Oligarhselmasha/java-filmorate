@@ -8,7 +8,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -24,32 +23,21 @@ public class User {
     private String name;
     @PastOrPresent
     private LocalDate birthday;
-    private final Set<Integer> notAprovedFriends = new HashSet<>();
-    private final Set<Integer> aprovedFriends = new HashSet<>();
-
+    private Set<Integer> friends;
 
 
     public Set<Integer> getFriends() {
-        return notAprovedFriends;
+        return friends;
     }
 
-    public void deleteFriends(int userId) {
-        notAprovedFriends.remove(userId);
+    public User deleteFriends(int userId) {
+        friends.remove(userId);
+        return this;
     }
 
-    public void setNotAprovedFriendsById(Integer userId) {
-        notAprovedFriends.add(userId);
+    public void addToFriens(int userId) {
+        friends.add(userId);
     }
 
-    public void setAprovedFriendsById(Integer userId) {
-        notAprovedFriends.remove(userId);
-        aprovedFriends.add(userId);
-    }
 
-    public String isAprovedFriend(Integer userId){
-        if (aprovedFriends.contains(userId)){
-            return "Aproved";
-        }
-        else return "Not aproved";
-    }
 }

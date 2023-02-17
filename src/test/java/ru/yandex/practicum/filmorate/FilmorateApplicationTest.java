@@ -1,145 +1,101 @@
 package ru.yandex.practicum.filmorate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.dao.DataIntegrityViolationException;
+import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenresService;
+import ru.yandex.practicum.filmorate.service.MpaService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
-import java.util.Random;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@AutoConfigureMockMvc
-class FilmorateApplicationTest {
-    @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
-    @SneakyThrows
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+
+//!!!Тесты запускать все разом. Порядок запуска тестов имеет значение!!!
+
+class FilmoRateApplicationTests {
+
+    private final FilmService filmService;
+    private final UserService userService;
+    private final MpaService mpaService;
+    private final GenresService genresService;
+
     @Test
-    void testPostUserFailInvalidEmail() {
-        User newUser = User.builder()
+    public void testFilmOk() {
+        Film newFilm = Film.builder()
+                .name("Крестный Отец")
+                .description("Фильм про мафию")
+                .duration(180)
+                .releaseDate(LocalDate.of(1985, 11, 11)).mpa(Mpa.builder().id(1).build())
+                .build();
+        filmService.addFilm(newFilm);
+        assertEquals(2, filmService.getFilmById(2).getId());
+    }
+
+    @Test
+    void validateFilmFailName() {
+        Film newFilm = Film.builder()
+                .name("")
+                .description("Фильм")
+                .duration(180)
+                .releaseDate(LocalDate.of(1985, 11, 11)).mpa(Mpa.builder().id(1).build())
+                .build();
+
+        DataIntegrityViolationException dataIntegrityViolationException = Assertions.assertThrows(DataIntegrityViolationException.class, () -> {
+            filmService.addFilm(newFilm);
+        }, "Ошибка валидации");
+    }
+    @Test
+    public void testUserOk() {
+        User user = User.builder()
                 .login("Oligarh_s_elmasha")
                 .name("Kirill")
-                .email("kirill@")
+                .email("kirill-bulanov@narod.ru")
                 .birthday(LocalDate.of(1991, 03,22))
                 .build();
-        String newUserString = objectMapper.writeValueAsString(newUser);
-        mockMvc.perform(post("/users").contentType("application/json").content(newUserString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is5xxServerError());
+        userService.addUsers(user);
+        assertEquals(2, userService.getCustomersDyId(2).getId());
     }
-
-    @SneakyThrows
     @Test
-    void testPostUserOK() {
-        User newUser = User.builder()
+    public void testInvalidEmail() {
+        User user = User.builder()
                 .login("Oligarh_s_elmasha")
                 .name("Kirill")
-                .email("kirill-bulanov@narod.ru")
+                .email("kirill-bulanovnarod.ru")
                 .birthday(LocalDate.of(1991, 03,22))
                 .build();
-        String newUserString = objectMapper.writeValueAsString(newUser);
-        mockMvc.perform(get("/users").contentType("application/json").content(newUserString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is2xxSuccessful());
-    }
-    @SneakyThrows
-    @Test
-    void testPostUserInvalidLogin() {
-        User newUser = User.builder()
-                .login("")
-                .name("Kirill")
-                .email("kirill-bulanov@narod.ru")
-                .birthday(LocalDate.of(1991, 3,22))
-                .build();
-        String newUserString = objectMapper.writeValueAsString(newUser);
-        mockMvc.perform(post("/users").contentType("application/json").content(newUserString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is5xxServerError());
-    }
-    @SneakyThrows
-    @Test
-    void testPostUserInvalidDOB() {
-        User newUser = User.builder()
-                .login("Kirill")
-                .name("Kirill")
-                .email("kirill-bulanov@narod.ru")
-                .birthday(LocalDate.of(2991, 03,22))
-                .build();
-        String newUserString = objectMapper.writeValueAsString(newUser);
-        mockMvc.perform(post("/users").contentType("application/json").content(newUserString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is5xxServerError());
+        DataIntegrityViolationException dataIntegrityViolationException = Assertions.assertThrows(DataIntegrityViolationException.class, () -> {
+            userService.addUsers(user);
+        }, "Ошибка валидации");
     }
 
-    @SneakyThrows
     @Test
-    void testPostFilmOk() {
-        Film newFilm = Film.builder()
-                .name("Крестный Отец")
-                .description("Фильм про мафию")
-                .duration(180)
-                .releaseDate(LocalDate.of(1985, 11, 11)).build();
-        String newFilmString = objectMapper.writeValueAsString(newFilm);
-        mockMvc.perform(post("/films").contentType("application/json").content(newFilmString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is2xxSuccessful());
+    public void testGenre() {
+       assertEquals(genresService.getGenresById(1).getId(), 1);
     }
 
-    @SneakyThrows
     @Test
-    void testPostFilmInvalidDOB() {
-        Film newFilm = Film.builder()
-                .name("Крестный Отец")
-                .description("Фильм про мафию")
-                .duration(180)
-                .releaseDate(LocalDate.of(985, 11, 11)).build();
-        String newFilmString = objectMapper.writeValueAsString(newFilm);
-        mockMvc.perform(post("/films").contentType("application/json").content(newFilmString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is4xxClientError());
+    public void testMpa() {
+        assertEquals(mpaService.getMpasById(1).getName(), "G");
     }
 
-    @SneakyThrows
     @Test
-    void testPostFilmInvalidDescription() {
-        Random random = new Random();
-        String badDescricpion = random
-                .ints(48, 123)
-                .limit(201)
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
-        Film newFilm = Film.builder()
-                .name("Крестный Отец")
-                .description(badDescricpion)
-                .duration(180)
-                .releaseDate(LocalDate.of(1985, 11, 11)).build();
-        String newFilmString = objectMapper.writeValueAsString(newFilm);
-        mockMvc.perform(post("/films").contentType("application/json").content(newFilmString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is5xxServerError());
-    }
-
-    @SneakyThrows
-    @Test
-    void testPostFilmBadDuration() {
-        Film newFilm = Film.builder()
-                .name("Крестный Отец")
-                .description("Фильм про мафию")
-                .duration(0)
-                .releaseDate(LocalDate.of(1985, 11, 11)).build();
-        String newFilmString = objectMapper.writeValueAsString(newFilm);
-        mockMvc.perform(post("/films").contentType("application/json").content(newFilmString))
-                .andDo(h -> System.out.println(h.getResponse().getStatus()))
-                .andExpect(status().is5xxServerError());
+    public void testBadMpa() {
+        MissingException missingException = Assertions.assertThrows(MissingException.class, () -> {
+            mpaService.getMpasById(8);
+        }, "Ошибка валидации");
     }
 }
