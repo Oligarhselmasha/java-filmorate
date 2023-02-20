@@ -11,7 +11,7 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
-    Film deliteFilmById(int id);
+    void deliteFilmById(int id);
 
     List<Film> getFilms();
 

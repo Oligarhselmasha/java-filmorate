@@ -40,9 +40,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film deliteFilmById(int id) {
+    public void deliteFilmById(int id) {
         if (films.containsKey(id)) {
-            return films.remove(id);
+            films.remove(id);
         } else {
             throw new ValidationException("Фильм, который Вы пытаетесь удалить, отсутствует в базе.");
         }

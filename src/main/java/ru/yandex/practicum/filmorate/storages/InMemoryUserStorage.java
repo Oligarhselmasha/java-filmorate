@@ -38,9 +38,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User deliteUserById(int userId) {
+    public void deliteUserById(int userId) {
         if (users.containsKey(userId)) {
-            return users.remove(userId);
+            users.remove(userId);
         } else {
             throw new ValidationException("Пользователь " + userId + " в базе не обнаружен");
         }

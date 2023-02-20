@@ -38,6 +38,4 @@ public class User {
     public void addToFriens(int userId) {
         friends.add(userId);
     }
-
-
 }

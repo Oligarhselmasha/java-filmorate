@@ -40,8 +40,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User deliteUserById(@PathVariable("id") Integer id) throws ValidationException {
-        return userService.deliteUserById(id);
+    public void deliteUserById(@PathVariable("id") Integer id) throws ValidationException {
+        userService.deliteUserById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

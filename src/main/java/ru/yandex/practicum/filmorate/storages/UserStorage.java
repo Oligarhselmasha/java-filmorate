@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Component
 public interface UserStorage {
@@ -12,7 +11,7 @@ public interface UserStorage {
 
     User updateUser(User user);
 
-    User deliteUserById(int userId);
+    void deliteUserById(int userId);
 
     User getUserById(int userId);
 

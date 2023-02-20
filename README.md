@@ -1,6 +1,6 @@
 # java-filmorate
 Доступ к данным приложения осуществляется согласно следующей ER-диаграмме:
-![](https://github.com/Oligarhselmasha/java-filmorate/blob/91325f9f5b46712dd9add8bfd90f2fc5e27aa749/src/main/resources/Entity%20Relationship%20Diagram%20(1).jpg)
+![](https://github.com/Oligarhselmasha/java-filmorate/blob/2569d90a2c3a8bbe87d5ea8952bcc1379338c4fb/src/main/Entity%20Relationship%20Diagram%20(1).jpg)
 ### Примеры SQL-запросов:
 #### Получить список всех фильмов:
 ```roomsql

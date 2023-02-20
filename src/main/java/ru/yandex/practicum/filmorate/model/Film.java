@@ -9,6 +9,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
-    private List<Genres> genres;
+    private List<Genres> genres = new ArrayList<>();
     private Mpa mpa;
     private Set<Integer> likes;
 

@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dao;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -11,15 +10,13 @@ import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storages.UserStorage;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+
+import static ru.yandex.practicum.filmorate.model.ExceptionMessageEnum.BAD_USER;
 
 @Component
 @Primary
@@ -40,17 +37,16 @@ public class UserDbStorage implements UserStorage {
                 "Birthday) values " +
                 "(?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(new PreparedStatementCreator() {
-            public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-                PreparedStatement ps = connection.prepareStatement(sql, new String[]{"User_id"});
-                ps.setString(1, user.getName());
-                ps.setString(2, user.getLogin());
-                ps.setString(3, user.getEmail());
-                ps.setDate(4, java.sql.Date.valueOf(user.getBirthday()));
-                return ps;
-            }
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"User_id"});
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getLogin());
+            ps.setString(3, user.getEmail());
+            ps.setDate(4, java.sql.Date.valueOf(user.getBirthday()));
+            return ps;
         }, keyHolder);
-        return getUserById(keyHolder.getKey().intValue());
+        int userId = Objects.requireNonNull(keyHolder.getKey()).intValue();
+        return getUserById(userId);
     }
 
     @Override
@@ -65,49 +61,46 @@ public class UserDbStorage implements UserStorage {
                     user.getId());
             return getUserById(user.getId());
         } catch (Exception exception) {
-            throw new MissingException("Пользователь, которого Вы пытаетесь обновить, отсутствует в базе.");
+            throw new MissingException(BAD_USER.getException());
         }
     }
 
     @Override
-    public User deliteUserById(int userId) {
+    public void deliteUserById(int userId) {
         try {
-            String sql = "delete from USERS where User_id_ID = ?";
+            String sql = "delete from USERS where User_id = ?";
             jdbcTemplate.update(sql, userId);
-            return getUserById(userId);
         } catch (Exception exception) {
-            throw new MissingException("Пользователь, которого Вы пытаетесь удалить, отсутствует в базе.");
+            throw new MissingException(BAD_USER.getException());
         }
     }
 
     @Override
     public User getUserById(int userId) {
-        try {
-            String sql = "SELECT u.User_id, u.Name, u.Login, u.Email, u.Birthday " +
-                    "FROM USERS u " +
-                    "WHERE User_id = ?";
-            return jdbcTemplate.query(sql, (rs, rowNum) -> makeUsers(rs), userId)
-                    .stream()
-                    .findFirst()
-                    .get();
-        } catch (Exception exception) {
-            throw new MissingException("Пользователь, которого Вы пытаетесь получить, отсутствует в базе.");
+        String sql = "SELECT u.User_id, u.Name, u.Login, u.Email, u.Birthday " +
+                "FROM USERS u " +
+                "WHERE User_id = ?";
+        Optional<User> user = jdbcTemplate.query(sql, (rs, rowNum) -> makeUsers(rs), userId)
+                .stream()
+                .findFirst();
+        if (user.isPresent()) {
+            return user.get();
+        } else {
+            throw new MissingException(BAD_USER.getException());
         }
     }
 
     @Override
-    public Collection<User> getUsers() {
+    public List<User> getUsers() {
         String sql = "select u.User_id, u.Name, u.Login, u.Email, u.Birthday  " +
                 "from Users AS u ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUsers(rs));
     }
 
     @Override
-    public Collection<Integer> getUsersIds() {
-        Collection<Integer> ids = new ArrayList<>();
-        for (User user : getUsers()) {
-            ids.add(user.getId());
-        }
+    public List<Integer> getUsersIds() {
+        List<Integer> ids = new ArrayList<>();
+        getUsers().forEach(user -> ids.add(user.getId()));
         return ids;
     }
 
@@ -147,7 +140,7 @@ public class UserDbStorage implements UserStorage {
                     usersFriendId);
             return getUserById(userId);
         } catch (Exception exception) {
-            throw new MissingException("Пользователь, которого Вы пытаетесь обновить, отсутствует в базе.");
+            throw new MissingException(BAD_USER.getException());
         }
     }
 
@@ -159,7 +152,7 @@ public class UserDbStorage implements UserStorage {
                     usersFriendId);
             return getUserById(userId);
         } catch (Exception exception) {
-            throw new MissingException("Пользователь, которого Вы пытаетесь обновить, отсутствует в базе.");
+            throw new MissingException(BAD_USER.getException());
         }
     }
 }

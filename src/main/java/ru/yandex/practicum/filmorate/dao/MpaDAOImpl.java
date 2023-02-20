@@ -9,6 +9,9 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+
+import static ru.yandex.practicum.filmorate.model.ExceptionMessageEnum.BAD_MPA;
 
 @RequiredArgsConstructor
 @Component
@@ -22,7 +25,14 @@ public class MpaDAOImpl implements MpaDAO {
                 "FROM FILM f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE FILM_ID = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id).stream().findFirst().get();
+        Optional<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
+                .stream()
+                .findFirst();
+        if (mpa.isPresent()) {
+            return mpa.get();
+        } else {
+            throw new MissingException(BAD_MPA.getException());
+        }
     }
 
     @Override
@@ -34,17 +44,24 @@ public class MpaDAOImpl implements MpaDAO {
 
     @Override
     public Mpa getMpaById(int id) {
-        try {
-            String sql = "SELECT * " +
-                    "FROM RATING " +
-                    "WHERE RATING_ID = ?";
-            return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id).stream().findFirst().get();
-        } catch (Exception exception) {
-            throw new MissingException("Запрашиваемый рейтинг отсутствует в базе");
+
+        String sql = "SELECT * " +
+                "FROM RATING " +
+                "WHERE RATING_ID = ?";
+        Optional<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
+                .stream()
+                .findFirst();
+        if (mpa.isPresent()) {
+            return mpa.get();
+        } else {
+            throw new MissingException(BAD_MPA.getException());
         }
     }
 
     public Mpa makeMPA(ResultSet rs) throws SQLException {
-        return Mpa.builder().id(rs.getInt("RATING_ID")).name(rs.getString("RATING_NAME")).build();
+        return Mpa.builder()
+                .id(rs.getInt("RATING_ID"))
+                .name(rs.getString("RATING_NAME"))
+                .build();
     }
 }

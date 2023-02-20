@@ -9,10 +9,13 @@ import ru.yandex.practicum.filmorate.model.Genres;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
+
+import static ru.yandex.practicum.filmorate.model.ExceptionMessageEnum.BAD_GENRE;
 
 @RequiredArgsConstructor
 @Component
-public class GenresDAOImpl implements GenresDAO{
+public class GenresDAOImpl implements GenresDAO {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -34,17 +37,24 @@ public class GenresDAOImpl implements GenresDAO{
 
     @Override
     public Genres getGenresById(int id) {
-        try {
-            String sql = "SELECT * " +
-                    "FROM GENRES " +
-                    "WHERE GENRE_ID = ?";
-            return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenres(rs), id).stream().findFirst().get();
-        } catch (Exception exception) {
-            throw new MissingException("Запрашиваемый жанр отсутствует в базе");
+        String sql = "SELECT * " +
+                "FROM GENRES " +
+                "WHERE GENRE_ID = ?";
+        Optional<Genres> genre = jdbcTemplate.query(
+                    sql, (rs, rowNum) -> makeGenres(rs), id
+                ).stream()
+                .findFirst();
+        if (genre.isPresent()) {
+            return genre.get();
+        } else {
+            throw new MissingException(BAD_GENRE.getException());
         }
     }
 
-    public Genres makeGenres (ResultSet rs) throws SQLException {
-       return Genres.builder().id(rs.getInt("GENRE_ID")).name(rs.getString("GENRE")).build();
+    public Genres makeGenres(ResultSet rs) throws SQLException {
+        return Genres.builder()
+                .id(rs.getInt("GENRE_ID"))
+                .name(rs.getString("GENRE"))
+                .build();
     }
 }

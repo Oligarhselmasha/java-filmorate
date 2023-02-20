@@ -17,11 +17,11 @@ public class UserService {
 
     private final UserStorage userStorage;
 
-    public User getCustomersDyId(Integer id) { // Получение юзера по id
+    public User getCustomersDyId(Integer id) {
         return userStorage.getUserById(id);
     }
 
-    public Collection<User> getCustomers() { // Получение всех юзеров
+    public Collection<User> getCustomers() {
         return userStorage.getUsers();
     }
 
@@ -36,8 +36,8 @@ public class UserService {
         return userStorage.updateUser(user);
     }
 
-    public User deliteUserById(Integer id) {
-        return userStorage.deliteUserById(id);
+    public void deliteUserById(Integer id) {
+        userStorage.deliteUserById(id);
     }
 
     public User addToFriends(int userId, int friendId) {

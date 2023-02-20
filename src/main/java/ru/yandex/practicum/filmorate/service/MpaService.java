@@ -5,14 +5,14 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.MpaDAOImpl;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
-import java.util.Collection;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 public class MpaService {
     private final MpaDAOImpl mpaDAO;
 
-    public Collection<Mpa> getMpa() {
+    public List<Mpa> getMpa() {
         return mpaDAO.getMpa();
     }
 
