@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
 import static ru.yandex.practicum.filmorate.model.ExceptionMessageEnum.BAD_MPA;
 
@@ -21,24 +20,19 @@ public class MpaDAOImpl implements MpaDAO {
 
     @Override
     public Mpa findFilmsMPA(int id) {
-        String sql = "SELECT r.RATING_ID , r.RATING_NAME " +
-                "FROM FILM f " +
+        String sql = "SELECT r.rating_id, r.rating_name " +
+                "FROM film f " +
                 "JOIN rating AS r ON f.rating_id = r.rating_id " +
-                "WHERE FILM_ID = ?";
-        Optional<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
+                "WHERE film_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
                 .stream()
-                .findFirst();
-        if (mpa.isPresent()) {
-            return mpa.get();
-        } else {
-            throw new MissingException(BAD_MPA.getException());
-        }
+                .findFirst().orElseThrow(() -> new MissingException(BAD_MPA.getException()));
     }
 
     @Override
     public List<Mpa> getMpa() {
         String sql = "SELECT * " +
-                "FROM RATING ";
+                "FROM rating ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs));
     }
 
@@ -46,22 +40,17 @@ public class MpaDAOImpl implements MpaDAO {
     public Mpa getMpaById(int id) {
 
         String sql = "SELECT * " +
-                "FROM RATING " +
-                "WHERE RATING_ID = ?";
-        Optional<Mpa> mpa = jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
+                "FROM rating " +
+                "WHERE rating_id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMPA(rs), id)
                 .stream()
-                .findFirst();
-        if (mpa.isPresent()) {
-            return mpa.get();
-        } else {
-            throw new MissingException(BAD_MPA.getException());
-        }
+                .findFirst().orElseThrow(() -> new MissingException(BAD_MPA.getException()));
     }
 
     public Mpa makeMPA(ResultSet rs) throws SQLException {
         return Mpa.builder()
-                .id(rs.getInt("RATING_ID"))
-                .name(rs.getString("RATING_NAME"))
+                .id(rs.getInt("rating_id"))
+                .name(rs.getString("rating_name"))
                 .build();
     }
 }

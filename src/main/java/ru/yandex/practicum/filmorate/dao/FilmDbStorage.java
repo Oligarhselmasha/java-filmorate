@@ -16,7 +16,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.yandex.practicum.filmorate.model.ExceptionMessageEnum.BAD_FILM;
@@ -36,15 +39,15 @@ public class FilmDbStorage implements FilmStorage {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException(BAD_FILM.getException());
         }
-        String sql = "INSERT INTO Film (Name, " +
-                "        Description, " +
-                "        Realise_date, " +
-                "        Duration, " +
-                "        Rating_id) values " +
+        String sql = "INSERT INTO film (title, " +
+                "        description, " +
+                "        realise_date, " +
+                "        duration, " +
+                "        rating_id) values " +
                 "(?, ?, ?, ?, ?);";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"Film_id"});
+            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"film_id"});
             ps.setString(1, film.getName());
             ps.setString(2, film.getDescription());
             ps.setDate(3, java.sql.Date.valueOf(film.getReleaseDate()));
@@ -54,7 +57,7 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
         int filmId = Objects.requireNonNull(keyHolder.getKey()).intValue();
         if (film.getGenres() != null) {
-            String sqlGenreAdd = "INSERT INTO Genres_line (Film_id, genre_id) " +
+            String sqlGenreAdd = "INSERT INTO genres_line (film_id, genre_id) " +
                     "values " +
                     "(?, ?)";
             film.getGenres()
@@ -67,7 +70,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         try {
-            String sql = "UPDATE FILM  SET Name = ?, Description = ?, Realise_date = ?, Duration = ?, Rating_id = ? WHERE Film_id = ?; ";
+            String sql = "UPDATE film SET title = ?, description = ?, realise_date = ?, duration = ?, rating_id = ? WHERE film_id = ?; ";
             jdbcTemplate.update(sql,
                     film.getName(),
                     film.getDescription(),
@@ -83,20 +86,17 @@ public class FilmDbStorage implements FilmStorage {
                 jdbcTemplate.update(sqlDeleteGenres, film.getId());
                 return getFilmById(film.getId());
             }
-            if (film.getGenres() != null) {
-                String sqlDeleteGenres = DELETE_GENRE_FROM_FILM.getRequest();
-                jdbcTemplate.update(sqlDeleteGenres, film.getId());
-                String sqlGenreAdd = "INSERT INTO Genres_line (Film_id, genre_id) " +
-                        "values " +
-                        "(?, ?)";
-                film.getGenres()
-                        .stream()
-                        .distinct()
-                        .collect(Collectors.toList())
-                        .forEach(g -> jdbcTemplate.update(sqlGenreAdd, film.getId(), g.toString()));
-                return getFilmById(film.getId());
-            }
-            return null;
+            String sqlDeleteGenres = DELETE_GENRE_FROM_FILM.getRequest();
+            jdbcTemplate.update(sqlDeleteGenres, film.getId());
+            String sqlGenreAdd = "INSERT INTO genres_line (film_id, genre_id) " +
+                    "values " +
+                    "(?, ?)";
+            film.getGenres()
+                    .stream()
+                    .distinct()
+                    .collect(Collectors.toList())
+                    .forEach(g -> jdbcTemplate.update(sqlGenreAdd, film.getId(), g.toString()));
+            return getFilmById(film.getId());
         } catch (Exception exception) {
             throw new MissingException(BAD_FILM.getException());
         }
@@ -105,7 +105,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public void deliteFilmById(int id) {
         try {
-            String sql = "delete from FILM where FILM_ID = ?";
+            String sql = "delete from film where film_id = ?";
             jdbcTemplate.update(sql, id);
         } catch (Exception exception) {
             throw new MissingException(BAD_FILM.getException());
@@ -114,8 +114,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getFilms() {
-        String sql = "select f.film_id, f.NAME, f.DESCRIPTION,f.REALISE_DATE,f.DURATION,r.RATING_NAME " +
-                "from Film AS f " +
+        String sql = "select f.film_id, f.title, f.description ,f.realise_date ,f.duration, r.rating_name " +
+                "from film AS f " +
                 "LEFT JOIN rating AS r ON f.rating_id = r.rating_id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilms(rs));
     }
@@ -123,7 +123,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film addLikeToFilm(int filmId, int usersId) {
         try {
-            String sql = "INSERT INTO LIKES_LINE (Film_id, User_id) values " +
+            String sql = "INSERT INTO likes_line (film_id, user_id) values " +
                     "(?,?)";
             jdbcTemplate.update(sql,
                     filmId,
@@ -136,26 +136,21 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilmById(int id) {
-        String sql = "select f.film_id, f.NAME, f.DESCRIPTION,f.REALISE_DATE,f.DURATION,r.RATING_NAME " +
-                "from Film AS f " +
+        String sql = "select f.film_id, f.title, f.description, f.realise_date, f.duration ,r.rating_name " +
+                "from film AS f " +
                 "LEFT JOIN rating AS r ON f.rating_id = r.rating_id " +
                 "WHERE film_id = ?";
-        Optional<Film> film = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilms(rs), id)
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilms(rs), id)
                 .stream()
-                .findFirst();
-        if (film.isPresent()) {
-            return film.get();
-        } else {
-            throw new MissingException(BAD_FILM.getException());
-        }
+                .findFirst().orElseThrow(() -> new MissingException(BAD_FILM.getException()));
     }
 
     private Film makeFilms(ResultSet rs) throws SQLException {
-        int id = rs.getInt("FILM_ID");
-        String name = rs.getString("NAME");
-        String description = rs.getString("DESCRIPTION");
-        LocalDate realiseDate = rs.getDate("REALISE_DATE").toLocalDate();
-        int duration = rs.getInt("DURATION");
+        int id = rs.getInt("film_id");
+        String name = rs.getString("title");
+        String description = rs.getString("description");
+        LocalDate realiseDate = rs.getDate("realise_date").toLocalDate();
+        int duration = rs.getInt("duration");
         Set<Integer> likes = makeFilmsLikes(id);
         return Film.builder()
                 .id(id)
@@ -171,9 +166,9 @@ public class FilmDbStorage implements FilmStorage {
 
     public Set<Integer> makeFilmsLikes(int id) {
         Set<Integer> likes = new HashSet<>();
-        SqlRowSet likesRows = jdbcTemplate.queryForRowSet("SELECT USER_ID FROM LIKES_LINE WHERE FILM_ID = ?", id);
+        SqlRowSet likesRows = jdbcTemplate.queryForRowSet("SELECT user_id FROM likes_line WHERE film_id = ?", id);
         while (likesRows.next()) {
-            likes.add(likesRows.getInt("USER_ID"));
+            likes.add(likesRows.getInt("user_id"));
         }
         return likes;
     }
