@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
 
 @Slf4j
@@ -41,8 +40,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User deliteUserById(@PathVariable("id") Integer id) throws ValidationException {
-        return userService.deliteUserById(id);
+    public void deliteUserById(@PathVariable("id") Integer id) throws ValidationException {
+        userService.deliteUserById(id);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

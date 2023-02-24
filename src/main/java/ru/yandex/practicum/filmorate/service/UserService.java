@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.MissingException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storages.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storages.UserStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,17 +15,20 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final InMemoryUserStorage userStorage;
+    private final UserStorage userStorage;
 
-    public User getCustomersDyId(Integer id) { // Получение юзера по id
+    public User getCustomersDyId(Integer id) {
         return userStorage.getUserById(id);
     }
 
-    public Collection<User> getCustomers() { // Получение всех юзеров
+    public Collection<User> getCustomers() {
         return userStorage.getUsers();
     }
 
     public User addUsers(User user) {
+        if (user.getName() == null || user.getName().equals("")) {
+            user.setName(user.getLogin());
+        }
         return userStorage.addUsers(user);
     }
 
@@ -33,33 +36,19 @@ public class UserService {
         return userStorage.updateUser(user);
     }
 
-    public User deliteUserById(Integer id) {
-        return userStorage.deliteUserById(id);
+    public void deliteUserById(Integer id) {
+        userStorage.deliteUserById(id);
     }
 
     public User addToFriends(int userId, int friendId) {
         if (!userStorage.getUsersIds().contains(userId) || !userStorage.getUsersIds().contains(friendId)) {
             throw new MissingException("Введен несуществующий id");
         }
-        User user = userStorage.getUserById(userId);
-        user.setNotAprovedFriendsById(friendId);
-        return user;
-    }
-
-    public User aproveFriendship(int userId, int friendId) {
-        if (!userStorage.getUsersIds().contains(userId) || !userStorage.getUsersIds().contains(friendId)) {
-            throw new MissingException("Введен несуществующий id");
-        }
-        User user1 = userStorage.getUserById(userId);
-        User user2 = userStorage.getUserById(friendId);
-        user2.setAprovedFriendsById(userId);
-        user1.setAprovedFriendsById(friendId);
-        return user1;
+        return userStorage.updateUsersFriend(userId, friendId);
     }
 
     public User deliteFromFriends(int userId, int friendId) {
-        userStorage.getUserById(userId).deleteFriends(friendId);
-        return userStorage.getUserById(friendId);
+        return userStorage.deleteUsersFriend(userId, friendId);
     }
 
     public Collection<User> takeFriendsList(int userId) {
@@ -74,15 +63,15 @@ public class UserService {
 
     public Collection<User> takeCommonFriendsList(int userId, int otherUserId) {
         Collection<User> commonFriends = new ArrayList<>();
-            if (userStorage.getUserById(userId).getFriends().isEmpty() || userStorage.getUserById(userId).getFriends() == null) {
-                return commonFriends;
-            }
+        if (userStorage.getUserById(userId).getFriends().isEmpty() || userStorage.getUserById(userId).getFriends() == null) {
+            return commonFriends;
+        }
         Set<Integer> frendsIds = userStorage.getUserById(userId).getFriends();
         Set<Integer> otherFrendsIds = userStorage.getUserById(otherUserId).getFriends();
         frendsIds.stream()
                 .filter(otherFrendsIds::contains)
                 .collect(Collectors.toList())
                 .forEach(id -> commonFriends.add(userStorage.getUserById(id)));
-            return commonFriends;
+        return commonFriends;
     }
 }

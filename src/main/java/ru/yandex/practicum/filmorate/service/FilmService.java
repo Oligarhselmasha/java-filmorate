@@ -33,7 +33,7 @@ public class FilmService {
     }
 
     public Film likeFilm(int id, int userId) {
-        filmStorage.getFilmById(id).setLike(userId);
+        filmStorage.addLikeToFilm(id, userId);
         return filmStorage.getFilmById(id);
     }
 

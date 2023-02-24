@@ -18,9 +18,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User addUsers(User user) {
-        if (user.getName() == null || user.getName().equals("")) {
-            user.setName(user.getLogin());
-        }
         userId++;
         user.setId(userId);
         users.put(userId, user);
@@ -41,9 +38,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User deliteUserById(int userId) {
+    public void deliteUserById(int userId) {
         if (users.containsKey(userId)) {
-            return users.remove(userId);
+            users.remove(userId);
         } else {
             throw new ValidationException("Пользователь " + userId + " в базе не обнаружен");
         }
@@ -66,5 +63,15 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public Collection<Integer> getUsersIds() {
         return users.keySet();
+    }
+
+    @Override
+    public User updateUsersFriend(int userId, int usersFriendId) {
+        return null;
+    }
+
+    @Override
+    public User deleteUsersFriend(int userId, int usersFriendId) {
+        return null;
     }
 }

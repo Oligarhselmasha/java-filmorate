@@ -8,9 +8,18 @@ import java.util.Collection;
 @Component
 public interface UserStorage {
     User addUsers(User user);
+
     User updateUser(User user);
-    User deliteUserById(int userId);
+
+    void deliteUserById(int userId);
+
     User getUserById(int userId);
+
     Collection<User> getUsers();
+
     Collection<Integer> getUsersIds();
+
+    User updateUsersFriend(int userId, int usersFriendId);
+
+    User deleteUsersFriend(int userId, int usersFriendId);
 }

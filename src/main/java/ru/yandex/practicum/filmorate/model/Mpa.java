@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Genres {
+public class Mpa {
     @JsonProperty("id")
     private Integer id;
     @JsonProperty("name")
